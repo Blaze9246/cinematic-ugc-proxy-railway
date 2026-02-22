@@ -1362,6 +1362,94 @@ Cinematic hyper-realism, 8k quality, natural lighting.`;
   }
 });
 
+// Generate structured prompt endpoint
+app.post('/generate-structured-prompt', async (req, res) => {
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  
+  if (!geminiKey) {
+    return res.status(400).json({ error: 'Gemini API key not configured' });
+  }
+
+  const { productName, productCategory, positioning, campaignType, includeModel } = req.body;
+  
+  if (!productName || !productCategory) {
+    return res.status(400).json({ error: 'productName and productCategory are required' });
+  }
+
+  try {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `Create a structured prompt for ${productName} (${productCategory}). Positioning: ${positioning}. Campaign: ${campaignType}. Include model: ${includeModel}.` }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return res.status(response.status).json({ error: errorData.error?.message || 'Gemini API error' });
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    
+    try {
+      const parsed = JSON.parse(text);
+      res.json(parsed);
+    } catch (e) {
+      res.json({ prompt: text, raw: true });
+    }
+  } catch (error) {
+    console.error('Structured prompt error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Generate UGC script endpoint
+app.post('/generate-ugc-script', async (req, res) => {
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  
+  if (!geminiKey) {
+    return res.status(400).json({ error: 'Gemini API key not configured' });
+  }
+
+  const { productName, productCategory, productDescription } = req.body;
+  
+  if (!productName || !productCategory) {
+    return res.status(400).json({ error: 'productName and productCategory are required' });
+  }
+
+  try {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `Create a UGC script for ${productName} (${productCategory}). Description: ${productDescription}. Return JSON with script, hook, and cta fields.` }] }],
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return res.status(response.status).json({ error: errorData.error?.message || 'Gemini API error' });
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    
+    try {
+      const parsed = JSON.parse(text);
+      res.json(parsed);
+    } catch (e) {
+      res.json({ script: text, raw: true });
+    }
+  } catch (error) {
+    console.error('UGC script error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🎬 Cinematic UGC Proxy Server v2.0 running on port ${PORT}`);
