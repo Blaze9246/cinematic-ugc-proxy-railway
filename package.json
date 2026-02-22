@@ -1,0 +1,19 @@
+{
+  "name": "cinematic-ugc-proxy",
+  "version": "1.0.0",
+  "description": "Proxy server for Cinematic UGC - Veo, Hedra, Kling video generation",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "build": "echo 'No build needed'"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "google-auth-library": "^9.4.1",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
